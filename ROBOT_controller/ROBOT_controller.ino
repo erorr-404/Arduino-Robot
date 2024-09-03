@@ -54,6 +54,17 @@ class Joystick {
     }
 };
 
+struct transmitData { // structure of data to transmit to robot
+  byte leftX; // left stick data
+  byte leftY;
+  byte leftP;
+
+  byte rightX; // right stick data
+  byte rightY;
+  byte rightP;
+};
+
+
 Joystick leftStick(LX, LY, LP);
 Joystick rightStick(RX, RY, RP);
 
@@ -61,12 +72,14 @@ RF24 radio(7, 8); // CE, CSN
 
 const byte address[6] = "00001";
 
+transmitData data;
+
 void setup() {
   radio.begin();
   radio.openWritingPipe(address);
-  radio.setPALevel(RF24_PA_MIN);
-  radio.stopListening();
-
+  radio.setAutoAck(false);
+  radio.setDataRate(RF24_250KBPS);
+  radio.setPALevel(RF24_PA_LOW);
   Serial.begin(9600);
 }
 
@@ -77,7 +90,18 @@ void loop() {
   // Serial.print("LY:");
   // Serial.println(rightStick.readLY());
 
-  const char text[] = "Hello World!";
-  radio.write(&text, sizeof(text));
-  delay(2000);
+  // const char text[] = "Hello World!";
+  // radio.write(&text, sizeof(text));
+  // delay(2000);
+
+  data.leftX = map(analogRead(LX), 0, 1023, 0, 255);
+  data.leftY = map(analogRead(LY), 0, 1023, 0, 255);
+  data.leftP = digitalRead(LP);
+
+  data.rightX = map(analogRead(RX), 0, 1023, 0, 255);
+  data.rightY = map(analogRead(RY), 0, 1023, 0, 255);
+  data.rightP = digitalRead(RP);
+
+  radio.write(&data, sizeof(transmitData));
+  Serial.println(data.leftX);
 }
