@@ -103,5 +103,4 @@ void loop() {
   data.rightP = digitalRead(RP);
 
   radio.write(&data, sizeof(transmitData));
-  Serial.println(data.leftX);
 }
