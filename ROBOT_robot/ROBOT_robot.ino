@@ -1,4 +1,4 @@
-#include <Wire.h>
+#include <Wire.h>  // include needed libs
 #include <Adafruit_PWMServoDriver.h>
 #include <SPI.h>
 #include <nRF24L01.h>
@@ -18,11 +18,11 @@ const uint8_t BIN2_2 = 7;
 
 Adafruit_PWMServoDriver pwmDriver;  // define PCA9685 object
 
-unsigned long lastReceiveTime = 0;
-unsigned long currentTime = 0;
+unsigned long lastReceiveTime = 0;  // var to store last received data time
+unsigned long currentTime = 0;      // var to store curent time
 
-RF24 radio(10, 9);  // nRF24L01 (CE, CSN)
-const byte address[6] = "00001";
+RF24 radio(10, 9);                // nRF24L01 (CE, CSN)
+const byte address[6] = "00001";  // adress of controller
 
 struct receiveData {  // structure of data to transmit to robot
   uint8_t leftX;      // left stick data
@@ -54,15 +54,10 @@ public:
   short sleep;   // driver stby pin
 
   void initialize() {
-    // pwmDriver.setPin(ain1, 0);
-    // pwmDriver.setPin(ain2, 0);
-    // pwmDriver.setPin(bin1, 0);
-    // pwmDriver.setPin(bin2, 0);
-
     this->awakeDriver();  // turn driver onn
   }
 
-  void setMotorOneSpeed(short mot_speed) {
+  void setMotorOneSpeed(short mot_speed) {  // set speed of motor 1
     if (mot_speed >= 0) {
       this->setMotorSpeed(1, uint16_t(mot_speed), false);
     } else {
@@ -70,7 +65,7 @@ public:
     }
   }
 
-  void setMotorTwoSpeed(short mot_speed) {
+  void setMotorTwoSpeed(short mot_speed) {  // set speed of motor 2
     if (mot_speed >= 0) {
       this->setMotorSpeed(2, uint16_t(mot_speed), false);
     } else {
@@ -110,7 +105,7 @@ private:
 };
 
 Driver frontDriver(AIN1, AIN2, BIN1, BIN2, SLP);           // define front driver
-Driver rearDriver(AIN1_2, AIN2_2, BIN1_2, BIN2_2, SLP_2);  // define rear driver, where 2 pins are not pwm
+Driver rearDriver(AIN1_2, AIN2_2, BIN1_2, BIN2_2, SLP_2);  // define rear driver
 
 void moveForward(short speed = 4095) {
   frontDriver.setMotorOneSpeed(speed);
@@ -189,7 +184,7 @@ void stop() {
   rearDriver.setMotorTwoSpeed(0);
 }
 
-void resetData() {
+void resetData() {   // function to reset data, called when lost connection
   data.leftX = 127;  // left stick data
   data.leftY = 127;
   data.leftP = 0;
@@ -200,19 +195,14 @@ void resetData() {
 }
 
 void setup() {
-  Serial.begin(9600);  // connect to serial
-  Serial.println("Robot starting...");
-  pwmDriver.begin();  // init PCA9685
-  Serial.println("PCA9685 inited.");
+  pwmDriver.begin();         // init PCA9685
   pwmDriver.setPWMFreq(50);  // set PCA9685 pmw freq
-  Serial.println("Robot started.");
-  radio.begin();
+  radio.begin();             // init radio
   radio.openReadingPipe(0, address);
   radio.setAutoAck(false);
   radio.setDataRate(RF24_250KBPS);
   radio.setPALevel(RF24_PA_LOW);
-  radio.startListening();  //  Set the module as receiver
-  Serial.println("Radio started.");
+  radio.startListening();    //  Set the module as receiver
   resetData();
 }
 
@@ -229,7 +219,7 @@ void loop() {
     resetData();                              // If connection is lost, reset the data. It prevents unwanted behavior, for example if a drone has a throttle up and we lose connection, it can keep flying unless we reset the values
   }
 
-  if (data.rightX > 170) {
+  if (data.rightX > 170) {  // control robot movement
     turnRight();
   } else if (data.rightX < 85) {
     turnLeft();
@@ -260,84 +250,4 @@ void loop() {
       }
     }
   }
-
-
-
-  // frontDriver.setMotorOneSpeed(4095);
-  // frontDriver.setMotorTwoSpeed(4095);
-  // rearDriver.setMotorOneSpeed(4095);
-  // rearDriver.setMotorTwoSpeed(4095);
-  // delay(5000);
-  // frontDriver.setMotorOneSpeed(0);
-  // frontDriver.setMotorTwoSpeed(0);
-  // rearDriver.setMotorOneSpeed(0);
-  // rearDriver.setMotorTwoSpeed(0);
-  // delay(5000);
-
-  // moveForward(2000);
-  // delay(3000);
-  // stop();
-  // delay(5000);
-
-  // moveBackward();
-  // delay(3000);
-  // stop();
-  // delay(1000);
-
-  // moveRight();
-  // delay(3000);
-  // stop();
-  // delay(1000);
-
-  // moveLeft();
-  // delay(3000);
-  // stop();
-  // delay(1000);
-
-  // moveForwardRight();
-  // delay(3000);
-  // stop();
-  // delay(1000);
-
-  // moveForwardLeft();
-  // delay(3000);
-  // stop();
-  // delay(1000);
-
-  // moveBackwardRight();
-  // delay(3000);
-  // stop();
-  // delay(1000);
-
-  // moveBackwardLeft();
-  // delay(3000);
-  // stop();
-  // delay(1000);
-
-  // turnRight();
-  // delay(3000);
-  // stop();
-  // delay(1000);
-
-  // turnLeft();
-  // delay(3000);
-  // stop();
-  // delay(1000);
-
-
-
-  // speed = map(analogRead(LY), 1023, 0, -255, 255);
-  // turn = map(analogRead(RX), 0, 1023, -255, 255);
-  // strafe = map(analogRead(LX), 0, 1023, -255, 255);
-
-  // FL = speed + turn + strafe;
-  // FR = speed - turn - strafe;
-  // RL = speed + turn - strafe;
-  // RR = speed - turn + strafe;
-
-  // frontDriver.setMotorOneSpeed(FL);
-  // frontDriver.setMotorTwoSpeed(FR);
-  // rearDriver.setMotorOneSpeed(RL);
-  // rearDriver.setMotorTwoSpeed(RR);
-  // Serial.println("TEST");
 }
